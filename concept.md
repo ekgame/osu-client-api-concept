@@ -21,17 +21,24 @@ Integration options mockup (by oliebol):
         "application": "application name",
         "description": "application description",
         "permissions": "read|notify|interact", // or "full"
+        "scope": "user", // or client
         "token": "HHWnH0XpdWzej7Ir" // Optional
     }
     ```
     
     ***
     
-    osu! should store `md5("HHWnH0XpdWzej7Ir") = "0652e041caf727f4f1a6127fe012c3f0"` for later authentication.
+    osu! should store a hash of the token for later authentication.
+    
+    If scope `client`:
+    `sha512("HHWnH0XpdWzej7Ir") = "0652e041caf727f4f1a6127fe012c3f0"`
+    
+    If scope: `user`:
+    `sha512("HHWnH0XpdWzej7Ir", username) = "0652e041caf727f4f1a6127fe012c3f0"`
     
     ***
 
-3. osu! client should pop up a message to approve the application, unless a valid token is provided.
+3. osu! client should pop up a message to approve the application (for every new user if `"scope": "client"`), unless a valid token is provided.
 4. Server->Client - Send authentication response (ok, user denied, banned, etc.) together with a token for later authentication. The token should then be hashed and stored in memory.
 
     ```js
