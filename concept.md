@@ -83,6 +83,7 @@ Integration options mockup (by oliebol):
 
 # Permission levels:
 * **read** - can only request and receive information from the client.
+* **subscribe** - can subscribe to events (receive "read request responses" without explicitly requesting them)
 * **notify** - can pop up standard (bottom-right) notification to the osu! client.
 * **interact** - can force a client to perform an action.
 * **full** - all of the above.
@@ -114,7 +115,7 @@ Error types:
     "type": "status"
 }
 ```
-*Response* (should also be sent when a change happens):
+*Response* (should also be sent when a change happens and subscribed to this event):
 ```js
 {
     "type": "status",
@@ -153,7 +154,7 @@ Error types:
     "type": "spectating_status"
 }
 ```
-*Response* (should also be sent when a change happens)::
+*Response* (should also be sent when a change happens and subscribed to this event):
 ```js
 {
     "type": "spectating_status",
@@ -177,7 +178,7 @@ Error types:
     "type": "multiplayer_status"
 }
 ```
-*Response* (should also be sent when a change happens):
+*Response* (should also be sent when a change happens and subscribed to this event):
 ```js
 {
     "type": "multiplayer_status",
@@ -203,6 +204,39 @@ Error types:
             ...
         ]
     }
+}
+```
+
+### Subscribe permission requests
+#### Subscribe request
+*Request*:
+```js
+{
+    "type": "subscribe",
+    "events": ["status"] // array of read-packet types to subscribe to
+}
+```
+*Response*:
+```js
+{
+    "type": "subscribe"
+    "events": ["spectating_status", "status"] // array of currently subscribed events so in this case the client was already subscribed to the spectating_status-event before subscribing to the status-event
+}
+```
+
+#### Unsubscribe request
+*Request*:
+```js
+{
+    "type": "unsubscribe",
+    "events": ["spectating_status"]
+}
+```
+*Response*:
+```js
+{
+    "type": "unsubscribe"
+    "events": ["status"] // array of currently subscribed events so in this case the client is now only subscribed to the status-event since it unsubscribed from the spectating_status-event
 }
 ```
 
