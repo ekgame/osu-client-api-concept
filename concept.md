@@ -1,5 +1,5 @@
 # About
-This is a proposal for osu! client side API for third-party applications. The API is designed to provide information as well as to allow interaction with the osu! client. 
+This is a proposal for osu! client side API for third-party applications. The API is designed to provide information as well as to allow interaction with the osu! client.
 
 osu! client here is refered as a Server, third party applications are refered to as Client.
 
@@ -25,17 +25,17 @@ Integration options mockup (by oliebol):
         "token": "HHWnH0XpdWzej7Ir" // Optional
     }
     ```
-    
+
     ***
-    
+
     osu! should store a hash of the token for later authentication.
-    
+
     If scope `client`:
-    `sha512("HHWnH0XpdWzej7Ir") = "0652e041caf727f4f1a6127fe012c3f0"`
-    
+    `sha512("HHWnH0XpdWzej7Ir") = "6b77fb730d88b3c8f658a1d8ba2a1416be72f3732d2b21110c2bef64c3852cca7dddc2537b39978c5987f3c0b666640fb1359a8ea2350f9a58100dfc3b452d35"`
+
     If scope: `user`:
-    `sha512("HHWnH0XpdWzej7Ir", username) = "0652e041caf727f4f1a6127fe012c3f0"`
-    
+    `sha512("HHWnH0XpdWzej7Ir", username) = "..."`
+
     ***
 
 3. osu! client should pop up a message to approve the application (for every new user if `"scope": "client"`), unless a valid token is provided.
@@ -48,9 +48,9 @@ Integration options mockup (by oliebol):
         "token": "Hz32jEJmgzHgXzVc"
     }
     ```
-    
+
     ***
-    
+
     Possible states:
     * *whitelisted* - authentified and whitelisted.
     * *ok* - authentified because the application was whitelisted.
@@ -58,7 +58,7 @@ Integration options mockup (by oliebol):
     * *invalid_state* - the user can't approve the connection because theyr in-game.
     * *blacklisted* - the application is blacklisted.
     * *protocol_error* - the client sent a malformed packet.
-    
+
     ***
 
 5. osu! client should pop-out a notification, that the application is now connected.
@@ -71,18 +71,19 @@ Integration options mockup (by oliebol):
         "reason": "shutdown"
     }
     ```
-    
+
     ***
-    
+
     Possible reasons:
     * *shutdown* - the client is being closed by the user.
     * *restart* - the client is performing an update and is restarting.
     * *blacklisted* - the application has been blacklisted by the user.
-    
+
     ***
 
 # Permission levels:
 * **read** - can only request and receive information from the client.
+* **subscribe** - can subscribe to events (receive "read request responses" without explicitly requesting them)
 * **notify** - can pop up standard (bottom-right) notification to the osu! client.
 * **interact** - can force a client to perform an action.
 * **full** - all of the above.
@@ -114,7 +115,7 @@ Error types:
     "type": "status"
 }
 ```
-*Response* (should also be sent when a change happens):
+*Response* (should also be sent when a change happens and subscribed to this event):
 ```js
 {
     "type": "status",
@@ -123,7 +124,7 @@ Error types:
     "mods": 12, // binary encoded mod flags
     "beatmap": {
         "approved": 1,   // 3 = qualified, 2 = approved, 1 = ranked, 0 = pending, -1 = WIP, -2 = graveyard
-        "approved_date": "2013-07-02 01:01:12", 
+        "approved_date": "2013-07-02 01:01:12",
         "last_update": "2013-07-06 16:51:22",
         "artist": "Luxion",
         "beatmap_id": 252002, // or null           
@@ -153,7 +154,7 @@ Error types:
     "type": "spectating_status"
 }
 ```
-*Response* (should also be sent when a change happens)::
+*Response* (should also be sent when a change happens and subscribed to this event):
 ```js
 {
     "type": "spectating_status",
@@ -177,7 +178,7 @@ Error types:
     "type": "multiplayer_status"
 }
 ```
-*Response* (should also be sent when a change happens):
+*Response* (should also be sent when a change happens and subscribed to this event):
 ```js
 {
     "type": "multiplayer_status",
@@ -186,8 +187,8 @@ Error types:
         "matchtype": "standard", // or "powerplay"
         "scoring_type": "score", // or "accuracy", "combo"
         "team_type": "head_to_head", // or "tag_coop", "team_vs", "tag_team_vs"
-        "name": "Room name", 
-        "password": "asdfgh", // or empty string for no password 
+        "name": "Room name",
+        "password": "asdfgh", // or empty string for no password
         "max_slots": 16,
         "mods": 12, // binary encoded mod flags
         "specials": "freemods", // or null
@@ -203,6 +204,39 @@ Error types:
             ...
         ]
     }
+}
+```
+
+### Subscribe permission requests
+#### Subscribe request
+*Request*:
+```js
+{
+    "type": "subscribe",
+    "events": ["status"] // array of read-packet types to subscribe to
+}
+```
+*Response*:
+```js
+{
+    "type": "subscribe"
+    "events": ["spectating_status", "status"] // array of currently subscribed events so in this case the client was already subscribed to the spectating_status-event before subscribing to the status-event
+}
+```
+
+#### Unsubscribe request
+*Request*:
+```js
+{
+    "type": "unsubscribe",
+    "events": ["spectating_status"]
+}
+```
+*Response*:
+```js
+{
+    "type": "unsubscribe"
+    "events": ["status"] // array of currently subscribed events so in this case the client is now only subscribed to the status-event since it unsubscribed from the spectating_status-event
 }
 ```
 
